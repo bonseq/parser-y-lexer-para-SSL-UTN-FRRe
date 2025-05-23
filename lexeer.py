@@ -3,21 +3,21 @@ import re
 
 # Lista de nombres de tokens
 tokens = [
-    # Palabras reservadas
+    # pal reservadas
     'EQUIPOS', 'VERSION', 'FIRMA_DIGITAL', 'NOMBRE_EQUIPO', 'IDENTIDAD_EQUIPO', 'DIRECCION', 'LINK',
     'CARRERA', 'ASIGNATURA', 'UNIVERSIDAD_REGIONAL', 'ALIANZA_EQUIPO', 'INTEGRANTES', 'PROYECTOS',
     'NOMBRE', 'EDAD', 'CARGO', 'FOTO', 'EMAIL', 'HABILIDADES', 'SALARIO', 'ACTIVO', 'ESTADO',
-    'RESUMEN', 'TAREAS', 'FECHA_INICIO', 'FECHA_FIN', 'VIDEO', 'CONCLUSION',
-    # Valores literales
+    'RESUMEN', 'TAREAS', 'FECHA', 'VIDEO', 'CONCLUSION',
+    # 
     'TODO', 'INPROGRESS', 'CANCELED', 'DONE', 'ONHOLD',
     'PRODUCT_ANALYST', 'PROJECT_MANAGER', 'UX_DESIGNER', 'MARKETING', 'DEVELOPER', 'DEVOPS', 'DB_ADMIN',
-    # Símbolos
+    # símbolos
     'DOS_PUNTOS', 'LLAVE_IZQ', 'LLAVE_DER', 'CORCHETE_IZQ', 'CORCHETE_DER', 'COMA',
-    # Tipos de datos
+    # tipos  datos
     'STRING', 'INTEGER', 'FLOAT', 'BOOL', 'NULL', 'URL', 'EMAIL_TYPE', 'DATE'
 ]
 
-# Diccionario de palabras reservadas y valores literales
+# palabras reservadas y valores literales
 reserved = {
     "equipos": "EQUIPOS",
     "version": "VERSION",
@@ -43,11 +43,11 @@ reserved = {
     "estado": "ESTADO",
     "resumen": "RESUMEN",
     "tareas": "TAREAS",
-    "fecha_inicio": "FECHA_INICIO",
-    "fecha_fin": "FECHA_FIN",
+    "fecha_inicio": "FECHA",
+    "fecha_fin": "FECHA",
     "video": "VIDEO",
     "conclusion": "CONCLUSION",
-    # Valores literales
+    # valores literales
     "To do": "TODO",
     "In progress": "INPROGRESS",
     "Canceled": "CANCELED",
@@ -62,7 +62,7 @@ reserved = {
     "DB admin": "DB_ADMIN"
 }
 
-# Reglas para símbolos
+# rules para símbolos
 t_DOS_PUNTOS = r':'
 t_LLAVE_IZQ = r'\{'
 t_LLAVE_DER = r'\}'
@@ -70,13 +70,23 @@ t_CORCHETE_IZQ = r'\['
 t_CORCHETE_DER = r'\]'
 t_COMA = r','
 
-# Ignorar espacios y tabulaciones
+# ignorar espacios y tabulaciones
 t_ignore = ' \t'
 
-# Reglas para tipos de datos y valores
-def t_STRING(t):
-    r'\"([^\\\n]|(\\.))*?\"'
-    # Aquí puedes agregar validaciones para fechas, emails, urls, etc.
+# rules para tipos de datos y valores fechas, emails, links
+def t_EMAIL(t):
+    r'\"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\"'
+    t.value = t.value.strip('"')  # Eliminar las comillas dobles
+    return t
+
+def t_FECHA(t):
+    r'\"(19[0-9]{2}|20[0-9]{2})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"'
+    t.value = t.value.strip('"')  
+    return t 
+
+def t_LINK(t):
+    r'\"(http|https):\/\/[a-zA-Z0-9.-]+(:[0-9]+)?(\/[a-zA-Z0-9._\-\/]*)*\"'
+    t.value = t.value.strip('"')  
     return t
 
 def t_INTEGER(t):
@@ -99,31 +109,33 @@ def t_NULL(t):
     t.value = None
     return t
 
-# Manejo de saltos de línea
+def t_STRING(t):
+    r'\"([^\\\n]|(\\.))*?\"'
+    return t
+
+#saltos de línea
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
-# Manejo de errores
+#errores
 def t_error(t):
     print(f"[Error léxico] Línea {t.lineno}: Carácter ilegal '{t.value[0]}'")
     t.lexer.skip(1)
 
-# Construir el lexer
 lexer = lex.lex()
 
-# Función para reconocer palabras reservadas y valores literales
+# función reconoce palabras reservadas y valores literales
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z0-9_ ]*'
     if t.value in reserved:
         t.type = reserved[t.value]
     return t
 
-# Puedes agregar reglas específicas para EMAIL, URL, DATE si lo deseas
 if __name__ == "__main__":
     import sys
 
-    # Si se pasa un archivo como argumento, lo lee; si no, lee desde consola
+    # si se pasa un archivo como argumento, lo lee; si no, lee desde consola
     if len(sys.argv) > 1:
         with open(sys.argv[1], 'r', encoding='utf-8') as f:
             data = f.read()
@@ -137,10 +149,10 @@ if __name__ == "__main__":
         except EOFError:
             pass
 
-    # Cargar el texto en el lexer
+    # carga de texto
     lexer.input(data)
 
-    # Imprimir los tokens encontrados
+    # print tokens encontrados
     print("\nTokens encontrados:")
     for token in lexer:
         print(f"{token.type}({token.value}) en línea {token.lineno}")
