@@ -1,5 +1,5 @@
-
-Lexer Retro GUI - Syntax Invaders
+//necesirto preguntar hsta donde el lexer deberia de anadar y que funcionalidades hayq ue dejarle al parser//
+Lexer - Syntax Invaders
 
 1. Requisitos:
    - Python 3.9+
@@ -13,7 +13,6 @@ Lexer Retro GUI - Syntax Invaders
 3. Qué hace:
    - Permite pegar o cargar un JSON.
    - Analiza léxicamente los tokens usando PLY.
-   - Muestra resultados en estilo retro consola (verde/negro).
+   - Muestra resultados en estilo retro consola (verde/negro)(falta un poco mas de trabajo a la interfax).
 
-4. Créditos:
    - Proyecto UTN - SSL - Syntax Invaders 💾🕹️
