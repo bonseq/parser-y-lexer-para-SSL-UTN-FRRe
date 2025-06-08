@@ -1,52 +1,86 @@
 {
   "equipos": [
     {
-      "nombre_equipo": "Syntax Invaders",
-      "identidad_equipo": "https://syntax-invaders.com",
-      "link": "https://discord.gg/syntax",
-      "asignatura": "Sintaxis y Semántica de Lenguajes",
-      "carrera": "Ingeniería en Sistemas",
-      "universidad_regional": "UTN Resistencia",
+      "nombre_equipo": "Sintaxis y semantica de Lenguajes",
+      "identidad_equipo": "https://www.frre.utn.edu.ar/public/themes/utnsd/images/UTN_FRRE-isi.png",
+      "link": "https://frre.cvg.utn.edu.ar/course/view.php?id=399",
+      "asignatura": "Sintaxis y semantica de Lenguajes",
+      "carrera": "Ingenieria en sistemas de Informacion",
+      "universidad_regional": "UTN Facultad Regional Resistencia",
       "dirección": {
-        "calle": "Av. Siempre Viva 123",
+        "calle": "French 414",
         "ciudad": "Resistencia",
-        "país": "Argentina"
+        "país": "argentina"
       },
-      "alianza_equipo": "Los Compiladores",
+      "alianza_equipo": "La organizacion del equipo se realiza segun la planificacion anual, junto al cronograma de clases. Alli se determinan los horarios de clases, temas a tratar cada clase y resultados esperados. La comunicacion entre integrantes se realiza mediante correo electronico, grupos de whatsapp",
       "integrantes": [
         {
-          "nombre": "Juliana Bonguan",
+          "nombre": "Rodrigo Vigil",
+          "edad": 30,
+          "cargo": "Marketing",
+          "foto": "https://pbs.twimg.com/media/FCPNWd8XsAg5AkL.jpg",
+          "email": "rodrigo@chirigui.com.mx",
+          "habilidades": "receptor, bateador",
+          "salario": 57000.45,
+          "activo": true
+        },
+        {
+          "nombre": "Juliana Torre",
           "edad": 22,
+          "cargo": "Project Manager",
+          "foto": "https://i.pinimg.com/736x/96/89/97/9689977519645c642236582b6dc64c33.jpg",
+          "email": "juliana@bears.com",
+          "habilidades": "receptor, lanceador",
+          "salario": 81300.45,
+          "activo": true
+        },
+        {
+          "nombre": "Nicolas Tortosa",
+          "edad": 25,
           "cargo": "Developer",
-          "foto": "https://fotos.com/juliana.jpg",
-          "email": "juliana@utn.edu.ar",
-          "habilidades": "Python, PLY, Trabajo en equipo",
-          "salario": 123456.78,
+          "foto": "https://www.baseballamerica.com/wp-content/uploads/2025/02/Brian_OConnor_Virginia_Getty.jpg",
+          "email": "nico@bears.com",
+          "habilidades": "receptor, lanceador",
+          "salario": 111300.75,
           "activo": true
         }
       ],
       "proyectos": [
         {
-          "nombre": "Interprete JSON",
+          "nombre": "Interprete JSON y traductor HTML",
           "estado": "In progress",
-          "resumen": "Proyecto para analizar y traducir JSON a HTML.",
+          "resumen": "Construir analizadores lexico y sintactico que permita analizar, validar y transformar un documento JSON que describe y almacena informacion de equipos y proyectos. Debera indicar si esta bien construido (adecuado al formato indicado, sin errores) de otra manera indicar los errores; adicionalmente a medida que analiza el documento debera transformar el contenido en un documento HTML.",
           "tareas": [
             {
-              "nombre": "Diseñar lexer",
-              "estado": "Done",
-              "resumen": "Implementación del analizador léxico.",
-              "fecha_inicio": "2025-05-01",
-              "fecha_fin": "2025-05-10"
+              "nombre": "Gramatica",
+              "estado": "In progress",
+              "resumen": "Presentar la gramatica del analizador sintactico contemplando restricciones del enunciado.",
+              "fecha_inicio": "2025-03-18",
+              "fecha_fin": "2025-05-04"
+            },
+            {
+              "nombre": "LEXER",
+              "estado": "To do",
+              "resumen": "Presentar lexer reconociendo todos los tokens. Actualizar documento.",
+              "fecha_inicio": "2025-04-10",
+              "fecha_fin": "2025-06-08"
+            },
+            {
+              "nombre": "PARSER",
+              "estado": "To do",
+              "resumen": "Presentacion final. LEXER + PARSER. Funcionamiento completo. Actualizar documento, subir video resumen.",
+              "fecha_inicio": "2025-04-18",
+              "fecha_fin": "2025-07-06"
             }
           ],
-          "fecha_inicio": "2025-05-01",
-          "fecha_fin": "2025-07-01",
-          "video": "https://videos.com/proyecto.mp4",
-          "conclusion": null
+          "fecha_inicio": "2025-03-18",
+          "fecha_fin": "2025-07-06",
+          "video": "https://www.youtube.com/watch?v=BFL2GHu1S_I",
+          "conclusion": "Por escribirse"
         }
       ]
     }
   ],
-  "version": "1.0",
-  "firma_digital": "SyntaxInvaders2025"
+  "version": "Release 0.9",
+  "firma_digital": "string"
 }
