@@ -2,6 +2,7 @@
 Lexer Retro GUI - Syntax Invaders
 TODO LO EJEUCTABLE EN BIN 
 el resto de carpeta son imagenes y documentacion junto con el codigo
+codigo en scr y ejecutable en bin pruebenlo y romapnlo de ser posible
 1. Requisitos:
    - Python 3.9+
    - pip install ply
