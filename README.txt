@@ -1,6 +1,4 @@
-//necesirto preguntar hsta donde el lexer deberia de anadar y que funcionalidades hayq ue dejarle al parser//
-Lexer - Syntax Invaders
-
+resuelto la interfaz grafdica, falta opcion de recibir por consola bien estructurada, y la opcion de slair directo, ademas de retocar los link pero como tal ya esta
 1. Requisitos:
    - Python 3.9+
    - pip install ply
