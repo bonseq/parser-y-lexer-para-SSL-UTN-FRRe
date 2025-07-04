@@ -12,7 +12,7 @@
         "ciudad": "Resistencia",
         "país": "argentina"
       },
-      "alianza_equipo": "La organizacion del equipo se realiza segun la planificacion anual, junto al cronograma de clases. Alli se determinan los horarios de clases, temas a tratar cada clase y resultados esperados. La comunicacion entre integrantes se realiza mediante correo electronico, grupos de whatsapp",
+      "alianza_equipo": "la organizacion del equipo se realiza segun la planificacion anual, junto al cronograma de clases. Alli se determinan los horarios de clases,temas a tratar cada clase y resultados esperados. La comunicacion entre integrantes se realiza mediante correo electronico, grupos de whatsapp",
       "integrantes": [
         {
           "nombre": "Rodrigo Vigil",
@@ -49,26 +49,26 @@
         {
           "nombre": "Interprete JSON y traductor HTML",
           "estado": "In progress",
-          "resumen": "Construir analizadores lexico y sintactico que permita analizar, validar y transformar un documento JSON que describe y almacena informacion de equipos y proyectos. Debera indicar si esta bien construido (adecuado al formato indicado, sin errores) de otra manera indicar los errores; adicionalmente a medida que analiza el documento debera transformar el contenido en un documento HTML.",
+          "resumen": "construir analizadores lexico y sintactico que permita analizar, validar y transformar un documento JSON que describe y almacena informacion de equipos y proyectos. Debera indicar si esta bien construido (adecuado al formato indicado, sin errores) de otra manera indicar los errores; adicionalmente a medida que analiza el documento debera transformar el contenido en un documento HTML.",
           "tareas": [
             {
               "nombre": "Gramatica",
               "estado": "In progress",
-              "resumen": "Presentar la gramatica del analizador sintactico contemplando restricciones del enunciado.",
+              "resumen": "Presentar la gramatica del analizador sintactico. contemplando restricciones del enunciado.",
               "fecha_inicio": "2025-03-18",
               "fecha_fin": "2025-05-04"
             },
             {
               "nombre": "LEXER",
-              "estado": "To do",
-              "resumen": "Presentar lexer reconociendo todos los tokens. Actualizar documento.",
+              "estado": "To Do",
+              "resumen": "Presentar lexer reconociendo todos los tokens.Actualizar documento",
               "fecha_inicio": "2025-04-10",
               "fecha_fin": "2025-06-08"
             },
             {
               "nombre": "PARSER",
-              "estado": "To do",
-              "resumen": "Presentacion final. LEXER + PARSER. Funcionamiento completo. Actualizar documento, subir video resumen.",
+              "estado": "To Do",
+              "resumen": "Presentacion final. LEXER + PARSER . funcionamiento completo.Actualizar documento, subir video resumen.",
               "fecha_inicio": "2025-04-18",
               "fecha_fin": "2025-07-06"
             }
@@ -76,7 +76,7 @@
           "fecha_inicio": "2025-03-18",
           "fecha_fin": "2025-07-06",
           "video": "https://www.youtube.com/watch?v=BFL2GHu1S_I",
-          "conclusion": "Por escribirse"
+          "conclusion": "por escribirse"
         }
       ]
     }

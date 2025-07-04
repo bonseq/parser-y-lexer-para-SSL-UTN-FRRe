@@ -1,58 +1,15 @@
-# lexer_sininterfaz.py (modificado con FECHA_INICIO y FECHA_FIN)
 import ply.lex as lex
+import re
 
-# Lista de nombres de tokens
 tokens = [
-    'NOMBRE_EQUIPO', 'VERSION', 'FIRMA_DIGITAL', 'LISTA_EQUIPOS', 'IDENTIDAD_EQUIPO', 'LINK',
-    'CARRERA', 'ASIGNATURA', 'UNIVERSIDAD_REGIONAL', 'ALIANZA_EQUIPO', 'INTEGRANTES', 'PROYECTOS',
-    'NOMBRE', 'EDAD', 'CARGO', 'FOTO', 'EMAIL', 'HABILIDADES', 'SALARIO', 'ACTIVO', 'ESTADO',
-    'RESUMEN', 'TAREAS', 'VIDEO', 'CONCLUSION', 'DIR_DET',
-    'CALLE', 'CIUDAD', 'PAIS',
-    'DOS_PUNTOS', 'LLAVE_IZQ', 'LLAVE_DER', 'CORCHETE_IZQ', 'CORCHETE_DER', 'COMA',
-    'STRING', 'INTEGER', 'FLOAT', 'BOOL', 'NULL', 'FECHA'
+    'STRING', 'INTEGER', 'FLOAT', 'BOOL', 'NULL', 'FECHA', 'EMAIL', 'URL',
+    'DOS_PUNTOS', 'LLAVE_IZQ', 'LLAVE_DER', 'CORCHETE_IZQ', 'CORCHETE_DER', 'COMA'
 ]
 
-reserved = {
-    "equipos": "LISTA_EQUIPOS",
-    "version": "VERSION",
-    "firma_digital": "FIRMA_DIGITAL",
-    "nombre_equipo": "NOMBRE_EQUIPO",
-    "identidad_equipo": "IDENTIDAD_EQUIPO",
-    "dirección": "DIR_DET",
-    "link": "LINK",
-    "carrera": "CARRERA",
-    "asignatura": "ASIGNATURA",
-    "universidad_regional": "UNIVERSIDAD_REGIONAL",
-    "alianza_equipo": "ALIANZA_EQUIPO",
-    "integrantes": "INTEGRANTES",
-    "proyectos": "PROYECTOS",
-    "nombre": "NOMBRE",
-    "edad": "EDAD",
-    "cargo": "CARGO",
-    "foto": "FOTO",
-    "email": "EMAIL",
-    "habilidades": "HABILIDADES",
-    "salario": "SALARIO",
-    "activo": "ACTIVO",
-    "estado": "ESTADO",
-    "resumen": "RESUMEN",
-    "tareas": "TAREAS",
-    "video": "VIDEO",
-    "conclusion": "CONCLUSION",
-    "calle": "CALLE",
-    "ciudad": "CIUDAD",
-    "país": "PAIS",
-    "fecha_inicio": "FECHA",
-    "fecha_fin": "FECHA"
-}
+# Tipos especiales para validación posterior
+valores_estado = ["To do", "In progress", "Canceled", "Done", "On hold"]
+valores_cargo = ["Product Analyst", "Project Manager", "UX designer", "Marketing", "Developer", "Devops", "DB admin"]
 
-# Tokens simples
-t_DOS_PUNTOS = r':'
-t_LLAVE_IZQ = r'\{'
-t_LLAVE_DER = r'\}'
-t_CORCHETE_IZQ = r'\['
-t_CORCHETE_DER = r'\]'
-t_COMA = r','
 t_ignore = ' \t'
 
 def t_newline(t):
@@ -64,13 +21,18 @@ def t_EMAIL(t):
     t.value = t.value.strip('"')
     return t
 
-def t_LINK(t):
+def t_FECHA(t):
+    r'\"(19[0-9]{2}|20[0-9]{2})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"'
+    t.value = t.value.strip('"')
+    return t
+
+def t_URL(t):
     r'\"(http|https):\/\/[a-zA-Z0-9\.\-\/\_\?\=\&\#\:]+\"'
     t.value = t.value.strip('"')
     return t
 
 def t_FLOAT(t):
-    r'\d+\.\d+'
+    r'\d+\.\d{2}'
     t.value = float(t.value)
     return t
 
@@ -89,14 +51,16 @@ def t_NULL(t):
     t.value = None
     return t
 
+t_COMA = r','
+t_LLAVE_IZQ = r'\{'
+t_LLAVE_DER = r'\}'
+t_CORCHETE_IZQ = r'\['
+t_CORCHETE_DER = r'\]'
+t_DOS_PUNTOS = r':'
+
 def t_STRING(t):
     r'\"([^\\\n]|(\\.))*?\"'
-    value = t.value.strip('"')
-    if value in reserved:
-        t.type = reserved[value]
-    else:
-        t.type = "STRING"
-    t.value = value
+    t.value = t.value.strip('"')
     return t
 
 def t_error(t):
