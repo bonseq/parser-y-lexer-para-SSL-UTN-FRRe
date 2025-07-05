@@ -2,6 +2,14 @@ import ply.lex as lex
 import ply.yacc as yacc
 import re
 
+CLAVES_VALIDAS = [
+    "nombre_equipo", "identidad_equipo", "dirección", "link", "carrera", "asignatura",
+    "universidad_regional", "alianza_equipo", "integrantes", "proyectos",
+    "nombre", "edad", "cargo", "foto", "email", "habilidades", "salario", "activo",
+    "estado", "resumen", "tareas", "fecha_inicio", "fecha_fin", "video", "conclusion",
+    "equipos", "version", "firma_digital", "calle", "ciudad", "país"
+]
+
 # ----------------- LEXER -----------------
 reserved = {
     "equipos": "LISTA_EQUIPOS",
@@ -68,12 +76,12 @@ def t_URL(t):
     return t
 
 def t_FLOAT(t):
-    r'\d+\.\d+'
+    r'-?\d+\.\d+'
     t.value = float(t.value)
     return t
 
 def t_INTEGER(t):
-    r'\d+'
+    r'-?\d+'
     t.value = int(t.value)
     return t
 
@@ -106,10 +114,25 @@ def t_STRING(t):
     return t
 
 def t_error(t):
-    # No imprimir, solo saltar
+    errores.append(f"[ERROR LÉXICO] en la línea {t.lineno}: carácter inesperado '{t.value[0]}'")
     t.lexer.skip(1)
 
 # ----------------- PARSER -----------------
+CARGOv= [
+    "product analyst", "project manager", "ux designer", "marketing",
+    "developer", "devops", "db admin"
+]
+ESTADOSv= [
+    "to do", "in progress", "canceled", "done", "on hold"
+]
+chart_PROHIBIDO="áéíóúÁÉÍÓÚñÑ"
+
+errores=[]
+
+EMAIL_R=r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9._\-]+\.[a-zA-Z]{2,4}$'
+URL_R= r'^(http:\/\/|https:\/\/)[a-zA-Z0-9\-\._~:\/\?#\[\]@!$&\'()*+,;=%]+$'
+CLAVES_URL = ["link", "identidad_equipo", "video", "foto"]
+
 def p_json(p):
     'json : LLAVE_IZQ elementos LLAVE_DER'
     p[0] = ('json', p[2])
@@ -123,8 +146,72 @@ def p_elementos(p):
         p[0] = p[1] + [p[3]]
 
 def p_par(p):
-    '''par : clave DOS_PUNTOS valor'''
-    p[0] = (p[1], p[3])
+    'par : clave DOS_PUNTOS valor'
+    clave_token = p[1]
+    clave_valor = clave_token.value
+    #clave correcta
+    if clave_valor not in CLAVES_VALIDAS:
+        errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, clave inválida o mal escrita: '{clave_valor}'")
+    
+    #valores correctos
+    # shequeo de cargo
+    if clave_valor == "cargo":
+        if str(p[3]).lower() not in CARGOv:
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, cargo invalido")
+    
+    # shequeo de estado (sin distinguir mayúsculas/minúsculas)
+    if clave_valor == "estado":
+        if str(p[3]).lower() not in ESTADOSv:
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, estado invalido")
+
+    #ñam caracteres sin acento o ñÑ
+    if isinstance(p[3], str):
+        if any(c in p[3] for c in chart_PROHIBIDO):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, palabra acentuada o con Ñ")
+    #chequeo edad
+    if clave_valor == "edad":
+        if not (isinstance(p[3], int) and p[3] > 0):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, edad debe ser mayor a cero")
+
+    #float siosi positivos y max dos decimales
+    if isinstance(p[3], float):
+        if p[3] < 0:
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, numero negativo")
+        else:
+            # Verificar cantidad de decimales
+            decimales = str(p[3]).split(".")[1]
+            if len(decimales) > 2:
+                errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno} , numero con mas de dos decimales")
+    if isinstance(p[3], int):
+        if p[3] < 0:
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}")
+    
+    #chequeo fecha semanticamente corrcta
+    if isinstance(p[3], str) and re.match(r'^\d{4}-\d{2}-\d{2}$', p[3]):
+        anio, mes, dia = map(int, p[3].split('-'))
+        if not (1900 <= anio <= 2099):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, anio invalido")
+        if not (1 <= mes <= 12):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, mes invalido")
+        if not (1 <= dia <= 31):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, dia invalido")
+    
+    #chequeo de email
+    if clave_valor == "email":
+        if not re.match(EMAIL_R, str(p[3])):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, email, invalido")
+    
+    if clave_valor in ["activo"]:  
+        if not isinstance(p[3], bool):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, valor booleano inválido")
+
+    # chequeo de URL
+    if clave_valor in CLAVES_URL:
+        if not re.match(URL_R, str(p[3])):
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}")
+
+    p[0] = (clave_valor, p[3])
+
 
 def p_clave(p):
     '''clave : STRING
@@ -160,7 +247,7 @@ def p_clave(p):
              | VERSION
              | FIRMA_DIGITAL
     '''
-    p[0] = p[1]
+    p[0] = p.slice[1]
 
 def p_objeto(p):
     'objeto : LLAVE_IZQ elementos LLAVE_DER'
@@ -215,16 +302,21 @@ def imprimir_tokens(texto):
 def analizar_sintaxis(texto):
     return parser.parse(texto)
 
-def pretty_print_tree(tree, indent=0):
-    result = ""
-    if isinstance(tree, dict):
-        for k, v in tree.items():
-            result += '  ' * indent + f"{k}:\n"
-            result += pretty_print_tree(v, indent + 1)
-    elif isinstance(tree, list):
-        for i, item in enumerate(tree):
-            result += '  ' * indent + f"- [{i}]\n"
-            result += pretty_print_tree(item, indent + 1)
+def imprimir_arbol(arbol, nivel=0):
+    resul = ""
+    if isinstance(arbol, dict):
+        for clave, valor in arbol.items():
+            resul += '  ' * nivel + f"{clave}:\n"
+            resul += imprimir_arbol(valor, nivel + 1)
+    elif isinstance(arbol, list):
+        if all(isinstance(elemento, tuple) and len(elemento) == 2 for elemento in arbol):
+            for clave, valor in arbol:
+                resul += '  ' * nivel + f"{clave}:\n"
+                resul += imprimir_arbol(valor, nivel + 1)
+        else:
+            for indice, elemento in enumerate(arbol):
+                resul += '  ' * nivel + f"- [{indice}]\n"
+                resul += imprimir_arbol(elemento, nivel + 1)
     else:
-        result += '  ' * indent + str(tree) + "\n"
-    return result
+        resul+= '  ' * nivel + str(arbol) + "\n"
+    return resul
