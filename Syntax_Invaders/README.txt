@@ -10,12 +10,18 @@ codigo en scr y ejecutable en bin pruebenlo y romapnlo de ser posible
 2. Cómo ejecutar:
    - Abrí una terminal.
    - Navegá hasta esta carpeta.
-   - Ejecutá: python lexer_gui.py
+   - Ejecutá: python interfaz.py
 
 3. Qué hace:
    - Permite pegar o cargar un JSON.
    - Analiza léxicamente los tokens usando PLY.
    - Muestra resultados en estilo retro consola (verde/negro).
 
-4. Créditos:
+validadciones en su totalidad hechas :)
+
+4. FALTANTES
+   -chequear html
+   -chequear cuando haya lisatr vacias 
+
+5. Créditos:
    - Proyecto UTN - SSL - Syntax Invaders 💾🕹️
