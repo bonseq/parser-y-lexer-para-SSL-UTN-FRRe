@@ -8,8 +8,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from lexer_parser import analizar_sintaxis, imprimir_tokens, imprimir_arbol, errores, lexer
  
- ##CHEQUEAR pq esto lo hice full chat yo le crei nomas nose html
+ 
 def json_a_html(arbol):
+  
     html = "<html><head><meta charset='utf-8'><title>Equipos</title></head><body>"
     html += "<h1>Equipos</h1>"
 
@@ -24,7 +25,8 @@ def json_a_html(arbol):
 
     if equipos:
         for equipo in equipos:
-            html += f"<h2>{equipo.get('nombre_equipo', '')}</h2>"
+            html += "<div style='border: 1px solid gray; padding: 20px; margin-bottom: 20px;'>" #Agregado que equipos sea metido dentro de un div
+            html += f"<h2>{equipo.get('nombre_equipo', '')}</h2>"                               #con borde y margen
             html += f"<p><b>Identidad:</b> <img src='{equipo.get('identidad_equipo', '')}' width='100'></p>"
             html += f"<p><b>Link:</b> <a href='{equipo.get('link', '')}'>{equipo.get('link', '')}</a></p>"
             html += f"<p><b>Asignatura:</b> {equipo.get('asignatura', '')}</p>"
@@ -35,7 +37,7 @@ def json_a_html(arbol):
             html += f"<p><b>Alianza equipo:</b> {equipo.get('alianza_equipo', '')}</p>"
 
             # Integrantes
-            html += "<h3>Integrantes</h3><ul>"
+            html += "<h2>Integrantes</h2><ul>" # Consigna del tpi pide nombre de int. en h2, asi que lo cambié
             for integrante in equipo.get('integrantes', []):
                 html += "<li>"
                 html += f"<b>{integrante.get('nombre', '')}</b> ({integrante.get('cargo', '')})<br>"
@@ -52,22 +54,30 @@ def json_a_html(arbol):
             html += "<h3>Proyectos</h3><ul>"
             for proyecto in equipo.get('proyectos', []):
                 html += "<li>"
-                html += f"<b>{proyecto.get('nombre', '')}</b> - Estado: {proyecto.get('estado', '')}<br>"
+                html += f"<b>{proyecto.get('nombre', '')}</b><br>" #Acá había un problema que Estado aparecía pegado al Nombre
+                html += f"Estado: {proyecto.get('estado', '')}<br>" #Solicionado con solo agregar un <br> en proyecto
                 html += f"Resumen: {proyecto.get('resumen', '')}<br>"
                 html += f"Fecha inicio: {proyecto.get('fecha_inicio', '')} - Fecha fin: {proyecto.get('fecha_fin', '')}<br>"
                 html += f"Video: <a href='{proyecto.get('video', '')}'>{proyecto.get('video', '')}</a><br>"
                 html += f"Conclusión: {proyecto.get('conclusion', '')}<br>"
+            
+             # Tareas
+               # Tareas como tabla ((las medidas son arbitrarias nuestras)?)
+                html += f"Tareas:"
+                html += "<table border='1' cellpadding='5' cellspacing='0' style='margin-left:20px;'>"
+                html += "<tr>"
+                html += "<th>Nombre</th><th>Estado</th><th>Resumen</th><th>Fecha inicio</th><th>Fecha fin</th>"
+                html += "</tr>"
 
-                # Tareas
-                html += "<b>Tareas:</b><ul>"
                 for tarea in proyecto.get('tareas', []):
-                    html += "<li>"
-                    html += f"{tarea.get('nombre', '')} - Estado: {tarea.get('estado', '')}<br>"
-                    html += f"Resumen: {tarea.get('resumen', '')}<br>"
-                    html += f"Fecha inicio: {tarea.get('fecha_inicio', '')} - Fecha fin: {tarea.get('fecha_fin', '')}<br>"
-                    html += "</li>"
-                html += "</ul>"
-
+                    html += "<tr>"
+                    html += f"<td>{tarea.get('nombre', '')}</td>"
+                    html += f"<td>{tarea.get('estado', '')}</td>"
+                    html += f"<td>{tarea.get('resumen', '')}</td>"
+                    html += f"<td>{tarea.get('fecha_inicio', '')}</td>"
+                    html += f"<td>{tarea.get('fecha_fin', '')}</td>"
+                    html += "</tr>"
+                html += "</table>"
                 html += "</li>"
             html += "</ul>"
 
@@ -75,6 +85,8 @@ def json_a_html(arbol):
     html += f"<b>Firma digital:</b> {firma if firma else ''}<br>"
     html += "</body></html>"
     return html
+
+               
  
 class TextLineNumbers(tk.Text):
     def __init__(self, master, *args, **kwargs):
