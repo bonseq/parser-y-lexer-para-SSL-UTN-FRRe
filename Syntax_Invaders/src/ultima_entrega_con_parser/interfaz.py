@@ -1,13 +1,18 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter.scrolledtext import ScrolledText
+from PIL import Image, ImageTk
 import os
 import sys
+
+alto = 600
+ancho = 1000 
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from lexer_parser import analizar_sintaxis, imprimir_tokens, imprimir_arbol, errores, lexer
  
+ ##CHEQUEAR pq esto lo hice full chat yo le crei nomas nose html
 def json_a_html(arbol):
   
     html = "<html><head><meta charset='utf-8'><title>Equipos</title></head><body>"
@@ -84,13 +89,11 @@ def json_a_html(arbol):
     html += f"<b>Firma digital:</b> {firma if firma else ''}<br>"
     html += "</body></html>"
     return html
-
-               
  
 class TextLineNumbers(tk.Text):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-        self.config(width=4, padx=4, takefocus=0, border=0, background="#f0f0f0", state="disabled", wrap="none")
+        self.config(width=4, padx=4, takefocus=0, border=0, background="#1a1a1a", state="disabled", wrap="none", highlightbackground="#083808", highlightcolor='#083808', highlightthickness=2.5)
 
     def update_line_numbers(self, text_widget):
         self.config(state="normal")
@@ -100,43 +103,94 @@ class TextLineNumbers(tk.Text):
         self.insert("1.0", line_numbers)
         self.config(state="disabled")
 
+def mostrar_ventana_temporal():
+    root = tk.Tk()
+    root.title("Ventana temporal")
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width - ancho) // 2
+    y = (screen_height - alto) // 2
+    root.geometry(f"{ancho}x{alto}+{x}+{y}")
+    root.resizable(False, False)
+    root.overrideredirect(True)
+    ventanatemporal = Image.open("fotos/inicio.png")  
+    ventanatemporal = ventanatemporal.resize((ancho, alto)) 
+    ventanatemporal = ImageTk.PhotoImage(ventanatemporal)
+    label_fondo = tk.Label(root, image=ventanatemporal)
+    label_fondo.place(relwidth=1, relheight=1)
+
+    root.after(2000, root.destroy)
+    
+    root.mainloop()
+
+def bloquear_scroll(event):
+    return "break"
+
 def main():
     root = tk.Tk()
     root.title("Analizador Sintáctico JSON (Lexer/Parser)")
-    root.geometry("1000x600")
+    root.geometry(f"{ancho}x{alto}")
+    root.resizable(False, False)
+    root.iconbitmap("fotos/sintaxinvader.ico")
+    
+    imagen = Image.open("fotos/backinvaders.png")  
+    imagen = imagen.resize((ancho, alto)) 
+    fondo = ImageTk.PhotoImage(imagen)
+    
+    label_fondo = tk.Label(root, image=fondo)
+    label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
 
+    root.fondo = fondo 
+    
     # Frame para numerador y texto
     frame = tk.Frame(root)
-    frame.pack(fill="both", expand=True, padx=10, pady=(10, 0))
+    frame.pack(fill="both", expand=True, padx=20, pady=(20, 10))
 
     # Numerador de líneas
-    lineas_texto = TextLineNumbers(frame)
+    lineas_texto = TextLineNumbers(frame, fg='#32CD32')
     lineas_texto.pack(side="left", fill="y")
 
     # Entrada JSON manual
-    text_input = ScrolledText(frame, height=15)
+    text_input = tk.Text(frame, wrap='none', bg='#1a1a1a', bd = 0, fg='white', insertbackground='white', highlightbackground="#045004", highlightcolor='#32CD32', highlightthickness=2.5, height=15, relief='flat')
     text_input.pack(side="left", fill="both", expand=True)
 
     # Función para actualizar los números de línea
-    def actualizar_lineas(event=None):
+    def actualizar_lineas(event = None):
+        pos = lineas_texto.yview()
         lineas_texto.update_line_numbers(text_input)
+        lineas_texto.yview_moveto(pos[0])
 
+
+    def scroll_sincronizadobarra (event):
+        lineas_texto.config (highlightcolor ='#34CC8D')
+        lineas_texto.config (highlightbackground ="#34CC8D")
+        lineas_texto.yview_scroll(-1 * (event.delta // 120), "units")
+        text_input.yview_scroll(-1 * int(event.delta / 120), "units")
+        y = text_input.yview()
+        lineas_texto.yview_moveto(y[0])
+        def restablecer_colores():
+            lineas_texto.config(highlightbackground="#083808")
+            lineas_texto.config(highlightcolor='#083808')
+        lineas_texto.after(100, restablecer_colores)
+        return "break"
+
+    lineas_texto.bind("<MouseWheel>", scroll_sincronizadobarra)
     text_input.bind("<KeyRelease>", actualizar_lineas)
-    text_input.bind("<MouseWheel>", actualizar_lineas)
     text_input.bind("<ButtonRelease-1>", actualizar_lineas)
+    text_input.bind("<MouseWheel>", bloquear_scroll)
 
     # Botones
     frame_botones = tk.Frame(root)
-    frame_botones.pack(pady=5)
+    frame_botones.pack(pady=10)
 
     # Salida
-    etiqueta_salida = tk.Label(root, text="Resultado del Análisis:")
-    etiqueta_salida.pack(anchor="w", padx=10)
-    text_output = ScrolledText(root, height=15, bg="#f0f0f0")
+    etiqueta_salida = tk.Label(root, text="Resultado del Análisis:", bg="#000000", fg="white", font=("Courier New", 12))
+    etiqueta_salida.pack(anchor="center")
+    text_output = tk.Text(root, height=15, bg='#1a1a1a', fg='white', insertbackground='white', highlightbackground="#045004", highlightcolor='#32CD32', highlightthickness=2.5, relief='flat', state="disabled")
     text_output.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
     def cargar_archivo():
-        ruta = filedialog.askopenfilename(filetypes=[("Archivos JSON", "*.json"), ("Todos los archivos", "*.*")])
+        ruta = filedialog.askopenfilename(filetypes=[("Archivos JSON", "*.json")])
         if ruta:
             try:
                 with open(ruta, "r", encoding="utf-8") as f:
@@ -148,6 +202,7 @@ def main():
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{str(e)}")
 
     def analizar():
+        text_output.config(state="normal")
         texto = text_input.get("1.0", tk.END).strip()
         if not texto:
             messagebox.showwarning("Vacío", "Por favor, ingresa o carga un JSON primero.")
@@ -181,6 +236,8 @@ def main():
         except Exception as e:
             text_output.delete("1.0", tk.END)
             text_output.insert(tk.END, f"[ERROR] Excepción al analizar:\n{str(e)}")
+        text_output.config(state="disable")
+
     def exportar_html():
         print("llamado funcion ")
         texto = text_input.get("1.0", tk.END).strip()
@@ -205,15 +262,26 @@ def main():
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo exportar el HTML:\n{str(e)}")
 
-    btn_cargar = tk.Button(frame_botones, text="Cargar Archivo", command=cargar_archivo)
-    btn_cargar.pack(side="left", padx=10)
 
-    btn_analizar = tk.Button(frame_botones, text="Analizar", command=analizar)
-    btn_analizar.pack(side="left", padx=10)
+    logohtml = Image.open("fotos/logo_html.png")
+    logohtml = logohtml.resize((20, 20))
+    logohtml = ImageTk.PhotoImage(logohtml)
 
-    btn_exportar = tk.Button(frame_botones, text="Exportar a HTML", command=exportar_html)
-    btn_exportar.pack(side="left", padx=10)
+    logojson = Image.open("fotos/logo_json.png")
+    logojson = logojson.resize((20, 20))
+    logojson = ImageTk.PhotoImage(logojson)
+
+    btn_cargar = tk.Button(frame_botones, relief='flat', bg="#A7D3E0", text="Cargar Archivo", image=logojson, compound="right", command=cargar_archivo)
+    btn_cargar.pack(side="left", padx=0)
+
+    btn_analizar = tk.Button(frame_botones, text="Analizar", relief='flat', bg='white', command=analizar)
+    btn_analizar.pack(side="left", padx=0)
+
+    btn_exportar = tk.Button(frame_botones, bg="#E0C1A7", relief='flat', text="Exportar a HTML", image=logohtml, compound="right", command=exportar_html)
+    btn_exportar.pack(side="left", padx=0)
 
     root.mainloop()
+
 if __name__ == "__main__":
-    main()
+    mostrar_ventana_temporal()
+    main ()
