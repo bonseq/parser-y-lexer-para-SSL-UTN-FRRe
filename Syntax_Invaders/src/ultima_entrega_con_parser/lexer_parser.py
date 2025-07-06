@@ -113,8 +113,12 @@ def t_STRING(t):
     t.value = valor
     return t
 
+ultimo_error_lexico_linea = [None]
+
 def t_error(t):
-    errores.append(f"[ERROR LÉXICO] en la línea {t.lineno}: carácter inesperado '{t.value[0]}'")
+    if ultimo_error_lexico_linea[0] != t.lineno:
+        errores.append(f"[ERROR LÉXICO] en la línea {t.lineno}: carácter inesperado '{t.value[0]}'")
+        ultimo_error_lexico_linea[0] = t.lineno
     t.lexer.skip(1)
 
 # ----------------- PARSER -----------------
@@ -137,7 +141,7 @@ def p_json(p):
     'json : LLAVE_IZQ elementos LLAVE_DER'
     arbol, html = p[2]
     p[0] = ('json', arbol)
-    # El HTML se genera en la interfaz usando json_a_html, así que solo devolvemos el árbol
+    # el html se genera en la interfaz usando json_a_html, así que solo imprimo el árbol
 
 def p_elementos(p):
     '''elementos : par
@@ -156,7 +160,7 @@ def p_par(p):
     clave_valor = clave_token.value
     arbol, html = p[3]
 
-    # Chequeos semánticos (igual que antes)
+    # chequeos semánticos (igual que antes)
     if clave_valor not in CLAVES_VALIDAS:
         errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, clave inválida o mal escrita: '{clave_valor}'")
     if clave_valor == "cargo":
@@ -165,12 +169,12 @@ def p_par(p):
     if clave_valor == "estado":
         if str(arbol).lower() not in ESTADOSv:
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, estado invalido")
-    if isinstance(arbol, str):
-        if any(c in arbol for c in chart_PROHIBIDO):
-            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, palabra acentuada o con Ñ")
+    #if isinstance(arbol, str): creo q sto no es necesario
+     #   if any(c in arbol for c in chart_PROHIBIDO):
+     #      errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, palabra acentuada o con Ñ")
     if clave_valor == "edad":
         if not (isinstance(arbol, int) and arbol > 0):
-            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, edad debe ser mayor a cero")
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, edad debe ser mayor a cero y entero")
     if isinstance(arbol, float):
         if arbol < 0:
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, numero negativo")
@@ -199,7 +203,7 @@ def p_par(p):
         if not re.match(URL_R, str(arbol)):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}")
 
-    # HTML: solo acumulamos el HTML de los valores que sean equipos (para mostrar en la interfaz)
+    # HTML: para acumulamor el HTML de los valores que sean equipos (para mostrar en la interfaz)
     if clave_valor == "equipos":
         html_out = html
     else:
@@ -247,7 +251,7 @@ def p_objeto(p):
     'objeto : LLAVE_IZQ elementos LLAVE_DER'
     arboles, html = p[2]
     arbol = dict(arboles)
-    # Si es un equipo, generá HTML especial para ese equipo
+    # si es un equipo, generá HTML especial para ese equipo
     if "nombre_equipo" in arbol:
         html = html_equipo(arbol)
     elif "nombre" in arbol and "cargo" in arbol and "edad" in arbol:
@@ -362,16 +366,44 @@ def html_equipo(equipo):
     return html
 
 def html_integrante(integrante):
-    # No se usa directamente, pero podés personalizar si querés
-    return ""
+    html = "<li>"
+    html += f"<b>{integrante.get('nombre', '')}</b> ({integrante.get('cargo', '')})<br>"
+    html += f"Edad: {integrante.get('edad', '')}<br>"
+    html += f"Email: {integrante.get('email', '')}<br>"
+    html += f"Habilidades: {integrante.get('habilidades', '')}<br>"
+    html += f"Salario: {integrante.get('salario', '')}<br>"
+    html += f"Activo: {'Sí' if integrante.get('activo', False) else 'No'}<br>"
+    html += f"<img src='{integrante.get('foto', '')}' width='60'><br>"
+    html += "</li>"
+    return html
 
 def html_proyecto(proyecto):
-    # No se usa directamente, pero podés personalizar si querés
-    return ""
+    html = "<li>"
+    html += f"<b>{proyecto.get('nombre', '')}</b><br>"
+    html += f"Estado: {proyecto.get('estado', '')}<br>"
+    html += f"Resumen: {proyecto.get('resumen', '')}<br>"
+    html += f"Fecha inicio: {proyecto.get('fecha_inicio', '')} - Fecha fin: {proyecto.get('fecha_fin', '')}<br>"
+    html += f"Video: <a href='{proyecto.get('video', '')}'>{proyecto.get('video', '')}</a><br>"
+    html += f"Conclusión: {proyecto.get('conclusion', '')}<br>"
+    # Tareas
+    html += "Tareas:"
+    html += "<table border='1' cellpadding='5' cellspacing='0' style='margin-left:20px;'>"
+    html += "<tr><th>Nombre</th><th>Estado</th><th>Resumen</th><th>Fecha inicio</th><th>Fecha fin</th></tr>"
+    for tarea in proyecto.get('tareas', []):
+        html += html_tarea(tarea)
+    html += "</table>"
+    html += "</li>"
+    return html
 
 def html_tarea(tarea):
-    # No se usa directamente, pero podés personalizar si querés
-    return ""
+    html = "<tr>"
+    html += f"<td>{tarea.get('nombre', '')}</td>"
+    html += f"<td>{tarea.get('estado', '')}</td>"
+    html += f"<td>{tarea.get('resumen', '')}</td>"
+    html += f"<td>{tarea.get('fecha_inicio', '')}</td>"
+    html += f"<td>{tarea.get('fecha_fin', '')}</td>"
+    html += "</tr>"
+    return html
 
 lexer = lex.lex()
 parser = yacc.yacc()
