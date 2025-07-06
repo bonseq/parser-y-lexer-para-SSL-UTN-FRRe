@@ -3,11 +3,11 @@ import ply.yacc as yacc
 import re
 
 CLAVES_VALIDAS = [
-    "nombre_equipo", "identidad_equipo", "dirección", "link", "carrera", "asignatura",
+    "nombre_equipo", "identidad_equipo", "direccion", "link", "carrera", "asignatura",
     "universidad_regional", "alianza_equipo", "integrantes", "proyectos",
     "nombre", "edad", "cargo", "foto", "email", "habilidades", "salario", "activo",
     "estado", "resumen", "tareas", "fecha_inicio", "fecha_fin", "video", "conclusion",
-    "equipos", "version", "firma_digital", "calle", "ciudad", "país"
+    "equipos", "version", "firma_digital", "calle", "ciudad", "pais"
 ]
 
 # ----------------- LEXER -----------------
@@ -19,7 +19,7 @@ reserved = {
     "asignatura": "ASIGNATURA",
     "carrera": "CARRERA",
     "universidad_regional": "UNIVERSIDAD_REGIONAL",
-    "dirección": "DIRECCION",
+    "direccion": "DIRECCION",
     "alianza_equipo": "ALIANZA_EQUIPO",
     "integrantes": "INTEGRANTES",
     "proyectos": "PROYECTOS",
@@ -40,7 +40,7 @@ reserved = {
     "conclusion": "CONCLUSION",
     "calle": "CALLE",
     "ciudad": "CIUDAD",
-    "país": "PAIS",
+    "pais": "PAIS",
     "version": "VERSION",
     "firma_digital": "FIRMA_DIGITAL"
 }
@@ -118,100 +118,94 @@ def t_error(t):
     t.lexer.skip(1)
 
 # ----------------- PARSER -----------------
-CARGOv= [
+errores = []
+
+CARGOv = [
     "product analyst", "project manager", "ux designer", "marketing",
     "developer", "devops", "db admin"
 ]
-ESTADOSv= [
+ESTADOSv = [
     "to do", "in progress", "canceled", "done", "on hold"
 ]
-chart_PROHIBIDO="áéíóúÁÉÍÓÚñÑ"
+chart_PROHIBIDO = "áéíóúÁÉÍÓÚñÑ"
 
-errores=[]
-
-EMAIL_R=r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9._\-]+\.[a-zA-Z]{2,4}$'
-URL_R= r'^(http:\/\/|https:\/\/)[a-zA-Z0-9\-\._~:\/\?#\[\]@!$&\'()*+,;=%]+$'
+EMAIL_R = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9._\-]+\.[a-zA-Z]{2,4}$'
+URL_R = r'^(http:\/\/|https:\/\/)[a-zA-Z0-9\-\._~:\/\?#\[\]@!$&\'()*+,;=%]+$'
 CLAVES_URL = ["link", "identidad_equipo", "video", "foto"]
 
 def p_json(p):
     'json : LLAVE_IZQ elementos LLAVE_DER'
-    p[0] = ('json', p[2])
+    arbol, html = p[2]
+    p[0] = ('json', arbol)
+    # El HTML se genera en la interfaz usando json_a_html, así que solo devolvemos el árbol
 
 def p_elementos(p):
     '''elementos : par
                  | elementos COMA par'''
     if len(p) == 2:
-        p[0] = [p[1]]
+        arbol, html = p[1]
+        p[0] = ([arbol], html)
     else:
-        p[0] = p[1] + [p[3]]
+        arboles, html1 = p[1]
+        arbol, html2 = p[3]
+        p[0] = (arboles + [arbol], html1 + html2)
 
 def p_par(p):
     'par : clave DOS_PUNTOS valor'
     clave_token = p[1]
     clave_valor = clave_token.value
-    #clave correcta
+    arbol, html = p[3]
+
+    # Chequeos semánticos (igual que antes)
     if clave_valor not in CLAVES_VALIDAS:
         errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, clave inválida o mal escrita: '{clave_valor}'")
-    
-    #valores correctos
-    # shequeo de cargo
     if clave_valor == "cargo":
-        if str(p[3]).lower() not in CARGOv:
+        if str(arbol).lower() not in CARGOv:
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, cargo invalido")
-    
-    # shequeo de estado (sin distinguir mayúsculas/minúsculas)
     if clave_valor == "estado":
-        if str(p[3]).lower() not in ESTADOSv:
+        if str(arbol).lower() not in ESTADOSv:
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, estado invalido")
-
-    #ñam caracteres sin acento o ñÑ
-    if isinstance(p[3], str):
-        if any(c in p[3] for c in chart_PROHIBIDO):
+    if isinstance(arbol, str):
+        if any(c in arbol for c in chart_PROHIBIDO):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, palabra acentuada o con Ñ")
-    #chequeo edad
     if clave_valor == "edad":
-        if not (isinstance(p[3], int) and p[3] > 0):
+        if not (isinstance(arbol, int) and arbol > 0):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, edad debe ser mayor a cero")
-
-    #float siosi positivos y max dos decimales
-    if isinstance(p[3], float):
-        if p[3] < 0:
+    if isinstance(arbol, float):
+        if arbol < 0:
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, numero negativo")
         else:
-            # Verificar cantidad de decimales
-            decimales = str(p[3]).split(".")[1]
+            decimales = str(arbol).split(".")[1]
             if len(decimales) > 2:
                 errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno} , numero con mas de dos decimales")
-    if isinstance(p[3], int):
-        if p[3] < 0:
+    if isinstance(arbol, int):
+        if arbol < 0:
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}")
-    
-    #chequeo fecha semanticamente corrcta
-    if isinstance(p[3], str) and re.match(r'^\d{4}-\d{2}-\d{2}$', p[3]):
-        anio, mes, dia = map(int, p[3].split('-'))
+    if isinstance(arbol, str) and re.match(r'^\d{4}-\d{2}-\d{2}$', arbol):
+        anio, mes, dia = map(int, arbol.split('-'))
         if not (1900 <= anio <= 2099):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, anio invalido")
         if not (1 <= mes <= 12):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, mes invalido")
         if not (1 <= dia <= 31):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, dia invalido")
-    
-    #chequeo de email
     if clave_valor == "email":
-        if not re.match(EMAIL_R, str(p[3])):
+        if not re.match(EMAIL_R, str(arbol)):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, email, invalido")
-    
-    if clave_valor in ["activo"]:  
-        if not isinstance(p[3], bool):
+    if clave_valor in ["activo"]:
+        if not isinstance(arbol, bool):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}, valor booleano inválido")
-
-    # chequeo de URL
     if clave_valor in CLAVES_URL:
-        if not re.match(URL_R, str(p[3])):
+        if not re.match(URL_R, str(arbol)):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}")
 
-    p[0] = (clave_valor, p[3])
+    # HTML: solo acumulamos el HTML de los valores que sean equipos (para mostrar en la interfaz)
+    if clave_valor == "equipos":
+        html_out = html
+    else:
+        html_out = ""  # El HTML de los otros campos lo arma la interfaz
 
+    p[0] = (clave_valor, arbol), html_out
 
 def p_clave(p):
     '''clave : STRING
@@ -251,11 +245,25 @@ def p_clave(p):
 
 def p_objeto(p):
     'objeto : LLAVE_IZQ elementos LLAVE_DER'
-    p[0] = dict(p[2])
+    arboles, html = p[2]
+    arbol = dict(arboles)
+    # Si es un equipo, generá HTML especial para ese equipo
+    if "nombre_equipo" in arbol:
+        html = html_equipo(arbol)
+    elif "nombre" in arbol and "cargo" in arbol and "edad" in arbol:
+        html = html_integrante(arbol)
+    elif "nombre" in arbol and "estado" in arbol and "resumen" in arbol:
+        html = html_proyecto(arbol)
+    elif "nombre" in arbol and "estado" in arbol and "fecha_inicio" in arbol:
+        html = html_tarea(arbol)
+    else:
+        html = ""
+    p[0] = (arbol, html)
 
 def p_lista(p):
     'lista : CORCHETE_IZQ valores CORCHETE_DER'
-    p[0] = p[2]
+    arboles, html = p[2]
+    p[0] = (arboles, html)
 
 def p_valor(p):
     '''valor : STRING
@@ -268,26 +276,105 @@ def p_valor(p):
              | URL
              | objeto
              | lista'''
-    p[0] = p[1]
+    if isinstance(p[1], tuple) and len(p[1]) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = (p[1], str(p[1]))
 
 def p_valores(p):
     '''valores : valor
                | valores COMA valor'''
     if len(p) == 2:
-        p[0] = [p[1]]
+        arbol, html = p[1]
+        p[0] = ([arbol], html)
     else:
-        p[0] = p[1] + [p[3]]
+        arboles, html1 = p[1]
+        arbol, html2 = p[3]
+        p[0] = (arboles + [arbol], html1 + html2)
 
 def p_error(p):
     if p:
-        raise SyntaxError(f"[ERROR] Error de sintaxis en '{p.value}' (línea {p.lineno})")
+        errores.append(f"[ERROR SINTÁCTICO] en la línea {p.lineno}: token inesperado '{p.value}'")
+        while True:
+            tok = parser.token()
+            if not tok or tok.type in ('LLAVE_DER', 'COMA', 'CORCHETE_DER'):
+                break
     else:
-        raise SyntaxError("[ERROR] Error de sintaxis al final del archivo")
+        errores.append("[ERROR SINTÁCTICO] al final del archivo")
+
+# ----------------- FUNCIONES DE HTML PARA CADA OBJETO -----------------
+
+def html_equipo(equipo):
+    # Devuelve solo el HTML del equipo (sin <html> ni <body>)
+    html = "<div style='border: 1px solid gray; padding: 20px; margin-bottom: 20px;'>"
+    html += f"<h2>{equipo.get('nombre_equipo', '')}</h2>"
+    html += f"<p><b>Identidad:</b> <img src='{equipo.get('identidad_equipo', '')}' width='100'></p>"
+    html += f"<p><b>Link:</b> <a href='{equipo.get('link', '')}'>{equipo.get('link', '')}</a></p>"
+    html += f"<p><b>Asignatura:</b> {equipo.get('asignatura', '')}</p>"
+    html += f"<p><b>Carrera:</b> {equipo.get('carrera', '')}</p>"
+    html += f"<p><b>Universidad:</b> {equipo.get('universidad_regional', '')}</p>"
+    direccion = equipo.get('dirección', {})
+    html += f"<p><b>Dirección:</b> {direccion.get('calle', '')}, {direccion.get('ciudad', '')}, {direccion.get('país', '')}</p>"
+    html += f"<p><b>Alianza equipo:</b> {equipo.get('alianza_equipo', '')}</p>"
+
+    # Integrantes
+    html += "<h2>Integrantes</h2><ul>"
+    for integrante in equipo.get('integrantes', []):
+        html += "<li>"
+        html += f"<b>{integrante.get('nombre', '')}</b> ({integrante.get('cargo', '')})<br>"
+        html += f"Edad: {integrante.get('edad', '')}<br>"
+        html += f"Email: {integrante.get('email', '')}<br>"
+        html += f"Habilidades: {integrante.get('habilidades', '')}<br>"
+        html += f"Salario: {integrante.get('salario', '')}<br>"
+        html += f"Activo: {'Sí' if integrante.get('activo', False) else 'No'}<br>"
+        html += f"<img src='{integrante.get('foto', '')}' width='60'><br>"
+        html += "</li>"
+    html += "</ul>"
+
+    # Proyectos
+    html += "<h3>Proyectos</h3><ul>"
+    for proyecto in equipo.get('proyectos', []):
+        html += "<li>"
+        html += f"<b>{proyecto.get('nombre', '')}</b><br>"
+        html += f"Estado: {proyecto.get('estado', '')}<br>"
+        html += f"Resumen: {proyecto.get('resumen', '')}<br>"
+        html += f"Fecha inicio: {proyecto.get('fecha_inicio', '')} - Fecha fin: {proyecto.get('fecha_fin', '')}<br>"
+        html += f"Video: <a href='{proyecto.get('video', '')}'>{proyecto.get('video', '')}</a><br>"
+        html += f"Conclusión: {proyecto.get('conclusion', '')}<br>"
+        # Tareas
+        html += f"Tareas:"
+        html += "<table border='1' cellpadding='5' cellspacing='0' style='margin-left:20px;'>"
+        html += "<tr>"
+        html += "<th>Nombre</th><th>Estado</th><th>Resumen</th><th>Fecha inicio</th><th>Fecha fin</th>"
+        html += "</tr>"
+        for tarea in proyecto.get('tareas', []):
+            html += "<tr>"
+            html += f"<td>{tarea.get('nombre', '')}</td>"
+            html += f"<td>{tarea.get('estado', '')}</td>"
+            html += f"<td>{tarea.get('resumen', '')}</td>"
+            html += f"<td>{tarea.get('fecha_inicio', '')}</td>"
+            html += f"<td>{tarea.get('fecha_fin', '')}</td>"
+            html += "</tr>"
+        html += "</table>"
+        html += "</li>"
+    html += "</ul>"
+    html += "</div>"
+    return html
+
+def html_integrante(integrante):
+    # No se usa directamente, pero podés personalizar si querés
+    return ""
+
+def html_proyecto(proyecto):
+    # No se usa directamente, pero podés personalizar si querés
+    return ""
+
+def html_tarea(tarea):
+    # No se usa directamente, pero podés personalizar si querés
+    return ""
 
 lexer = lex.lex()
 parser = yacc.yacc()
-
-# ----------------- FUNCIONES PARA LA INTERFAZ -----------------
 
 def imprimir_tokens(texto):
     lexer.input(texto)
@@ -300,7 +387,11 @@ def imprimir_tokens(texto):
     return lineas
 
 def analizar_sintaxis(texto):
-    return parser.parse(texto)
+    resultado = parser.parse(texto)
+    if resultado is None:
+        # Si el parser no pudo armar nada, devolvé un árbol vacío para que igual se genere HTML
+        return ('json', [])
+    return resultado
 
 def imprimir_arbol(arbol, nivel=0):
     resul = ""
