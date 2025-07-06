@@ -8,7 +8,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from lexer_parser import analizar_sintaxis, imprimir_tokens, imprimir_arbol, errores, lexer
  
- 
 def json_a_html(arbol):
   
     html = "<html><head><meta charset='utf-8'><title>Equipos</title></head><body>"
@@ -182,8 +181,8 @@ def main():
         except Exception as e:
             text_output.delete("1.0", tk.END)
             text_output.insert(tk.END, f"[ERROR] Excepción al analizar:\n{str(e)}")
-
     def exportar_html():
+        print("llamado funcion ")
         texto = text_input.get("1.0", tk.END).strip()
         if not texto:
             messagebox.showwarning("Vacío", "Por favor, ingresa o carga un JSON primero.")
@@ -192,10 +191,12 @@ def main():
             errores.clear()
             lexer.lineno = 1
             resultado = analizar_sintaxis(texto)
-            if not resultado or errores:
-                messagebox.showerror("Error", "Corrige los errores antes de exportar a HTML.")
+            if not resultado:
+                messagebox.showerror("Error", "No se pudo generar ningún HTML.")
                 return
             html = json_a_html(resultado)
+            if errores:
+                messagebox.showwarning("Advertencia", "Se exportara el HTML de forma parcial. Hay errores en el archivo.")
             ruta = filedialog.asksaveasfilename(defaultextension=".html", filetypes=[("Archivos HTML", "*.html")])
             if ruta:
                 with open(ruta, "w", encoding="utf-8") as f:
