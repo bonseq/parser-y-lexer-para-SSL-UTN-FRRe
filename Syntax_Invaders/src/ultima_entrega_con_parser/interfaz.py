@@ -26,7 +26,7 @@ def json_a_html(arbol):
     equipos = datos.get("equipos", [])
     version = datos.get("version", "")
     firma = datos.get("firma_digital", "")
-
+    
     if equipos:
         for equipo in equipos:
             html += "<div style='border: 1px solid gray; padding: 20px; margin-bottom: 20px;'>" #Agregado que equipos sea metido dentro de un div
