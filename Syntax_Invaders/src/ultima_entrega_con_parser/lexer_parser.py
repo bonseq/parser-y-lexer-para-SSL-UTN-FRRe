@@ -133,15 +133,27 @@ ESTADOSv = [
 ]
 chart_PROHIBIDO = "áéíóúÁÉÍÓÚñÑ"
 
+OBL_EQUIPO = [
+    "nombre_equipo", "identidad_equipo", "carrera", "asignatura",
+    "universidad_regional", "alianza_equipo", "integrantes", "proyectos"
+]
+
 EMAIL_R = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9._\-]+\.[a-zA-Z]{2,4}$'
 URL_R = r'^(http:\/\/|https:\/\/)[a-zA-Z0-9\-\._~:\/\?#\[\]@!$&\'()*+,;=%]+$'
 CLAVES_URL = ["link", "identidad_equipo", "video", "foto"]
 
+def chequear_obligatorios(dic, obligatorios, tipo, linea):
+    for campo in obligatorios:
+        if campo not in dic:
+            errores.append(f"[ERROR SEMÁNTICO] en la línea {linea}, falta el campo obligatorio '{campo}' en {tipo}.")
+
 def p_json(p):
     'json : LLAVE_IZQ elementos LLAVE_DER'
     arbol, html = p[2]
+    datos = dict(arbol)
+    OBLIGATORIOS_RAIZ = ["equipos"]
+    chequear_obligatorios(datos, OBLIGATORIOS_RAIZ, "objeto raíz", 1)
     p[0] = ('json', arbol)
-    # el html se genera en la interfaz usando json_a_html, así que solo imprimo el árbol
 
 def p_elementos(p):
     '''elementos : par
@@ -202,12 +214,15 @@ def p_par(p):
     if clave_valor in CLAVES_URL:
         if not re.match(URL_R, str(arbol)):
             errores.append(f"[ERROR SEMÁNTICO] en la línea {clave_token.lineno}")
+    if clave_valor == "equipos" and isinstance(arbol, list):
+        for equipo in arbol:
+            chequear_obligatorios(equipo, OBL_EQUIPO, "equipo", clave_token.lineno)
 
     # HTML: para acumulamor el HTML de los valores que sean equipos (para mostrar en la interfaz)
     if clave_valor == "equipos":
         html_out = html
     else:
-        html_out = ""  # El HTML de los otros campos lo arma la interfaz
+        html_out = "" # el html de otros campos
 
     p[0] = (clave_valor, arbol), html_out
 
@@ -246,13 +261,14 @@ def p_clave(p):
              | FIRMA_DIGITAL
     '''
     p[0] = p.slice[1]
-
+    
 def p_objeto(p):
     'objeto : LLAVE_IZQ elementos LLAVE_DER'
     arboles, html = p[2]
     arbol = dict(arboles)
-    # si es un equipo, generá HTML especial para ese equipo
+    # Si es un equipo, chequeá obligatorios
     if "nombre_equipo" in arbol:
+        chequear_obligatorios(arbol, OBL_EQUIPO, "equipo", 1)  # Línea 1 por defecto, o mejorá con el token si querés
         html = html_equipo(arbol)
     elif "nombre" in arbol and "cargo" in arbol and "edad" in arbol:
         html = html_integrante(arbol)
